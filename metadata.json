@@ -1,0 +1,8 @@
+
+{
+  "name": "PX AI-Avatar",
+  "description": "A sophisticated AI-powered portrait transformation app that reimagines your selfie in various professional and exotic scenarios.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
