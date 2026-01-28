@@ -35,3 +35,30 @@ export const generateSpeech = async (text: string, voiceId: string): Promise<str
         reader.readAsDataURL(blob);
     });
 };
+
+export interface ElevenLabsVoice {
+    voice_id: string;
+    name: string;
+    category: string;
+    labels?: Record<string, string>;
+    // Add other fields if needed
+}
+
+export const getVoices = async (): Promise<ElevenLabsVoice[]> => {
+    if (!ELEVENLABS_API_KEY) throw new Error("VITE_ELEVENLABS_API_KEY is missing");
+
+    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'xi-api-key': ELEVENLABS_API_KEY,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch voices: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.voices;
+};

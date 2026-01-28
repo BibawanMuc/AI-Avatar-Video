@@ -50,15 +50,41 @@ export const ResultView: React.FC<ResultViewProps> = ({ videoUrl, onRestart }) =
                         </p>
                     </div>
 
-                    <button
-                        onClick={onRestart}
-                        className="w-full max-w-xs bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl transition-all border border-zinc-700"
-                    >
-                        Neuer Avatar
-                    </button>
                 </div>
 
+                <div className="flex flex-col w-full space-y-3">
+                    <button
+                        onClick={async () => {
+                            try {
+                                const response = await fetch(videoUrl);
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.style.display = 'none';
+                                a.href = url;
+                                a.download = `avatar-video-${Date.now()}.mp4`;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                            } catch (e) {
+                                console.error("Direct download failed, opening in new tab", e);
+                                window.open(videoUrl, '_blank');
+                            }
+                        }}
+                        className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-violet-500/20"
+                    >
+                        Video Herunterladen ⬇️
+                    </button>
+
+                    <button
+                        onClick={onRestart}
+                        className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl transition-all border border-zinc-700"
+                    >
+                        Neuer Avatar ↻
+                    </button>
+                </div>
             </div>
+
         </div>
     );
 };

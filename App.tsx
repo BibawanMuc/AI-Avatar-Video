@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { TerminalOne } from './components/TerminalOne';
 import { Layout } from './components/Layout';
 import { CameraView } from './components/CameraView';
 import { SelectionView } from './components/SelectionView';
@@ -7,32 +6,49 @@ import { VoiceInputView } from './components/VoiceInputView';
 import { ResultView } from './components/ResultView';
 import { AppState, Outfit, Setting, Style, AspectRatio, Voice } from './types';
 import { generatePersonaImage } from './services/geminiService';
-import { generateSpeech } from './services/elevenLabsService';
+import { generateSpeech, getVoices } from './services/elevenLabsService';
 import { generateVideo } from './services/replicateService';
 import { supabase } from './services/supabaseClient';
 
 const App: React.FC = () => {
-  const [terminalMode, setTerminalMode] = useState<'kiosk' | 'admin'>('kiosk');
   const [voices, setVoices] = useState<Voice[]>([]);
 
-  // Load Voices on Mount and when switching back to Kiosk
-  useEffect(() => {
-    const fetchVoices = async () => {
-      const { data, error } = await supabase.from('voices').select('*');
-      if (data) setVoices(data);
-      if (error) console.error("Error fetching voices:", error);
-    };
+  const refreshVoices = async () => {
+    try {
+      console.log("Fetching voices...");
+      const apiVoices = await getVoices();
+      console.log("Raw ElevenLabs Voices:", apiVoices);
 
-    if (terminalMode === 'kiosk') {
-      fetchVoices();
+      // Filter for 'KI Event' tag
+      // Also checking Name and Category just in case
+      const filteredVoices = apiVoices.filter(v => {
+        const jsonString = JSON.stringify(v).toLowerCase();
+        return jsonString.includes('ki event') || jsonString.includes('ki-event');
+      });
+
+      console.log(`Found ${apiVoices.length} total voices, ${filteredVoices.length} matching 'KI Event'`);
+
+      if (filteredVoices.length === 0) {
+        console.warn("No voices found with 'KI Event' tag! Showing ALL voices for debugging.");
+        alert("ACHTUNG: Keine Stimmen mit 'KI Event' Tag gefunden. Zeige alle verfügbaren Stimmen an.");
+        const mappedVoices: Voice[] = apiVoices.map(v => ({
+          id: v.voice_id,
+          name: v.name,
+          voice_id: v.voice_id
+        }));
+        setVoices(mappedVoices);
+      } else {
+        const mappedVoices: Voice[] = filteredVoices.map(v => ({
+          id: v.voice_id,
+          name: v.name,
+          voice_id: v.voice_id
+        }));
+        setVoices(mappedVoices);
+      }
+    } catch (error) {
+      console.error("Error fetching voices:", error);
     }
-  }, [terminalMode]);
-
-  // URL Param Check
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('terminal') === '1') setTerminalMode('admin');
-  }, []);
+  };
 
   // -- STATE --
   const initialAppState: AppState = {
@@ -51,6 +67,13 @@ const App: React.FC = () => {
   };
 
   const [state, setState] = useState<AppState>(initialAppState);
+
+  // Trigger fetch when entering 'voice-input' step
+  useEffect(() => {
+    if (state.step === 'voice-input') {
+      refreshVoices();
+    }
+  }, [state.step]);
 
   // 1. Capture Selfie
   const handleSelfieCaptured = (base64: string) => {
@@ -144,22 +167,8 @@ const App: React.FC = () => {
 
   // -- RENDER --
 
-  if (terminalMode === 'admin') {
-    return (
-      <div className="relative">
-        <div className="absolute top-4 right-4 z-50">
-          <button onClick={() => setTerminalMode('kiosk')} className="bg-zinc-800 text-xs px-3 py-1 rounded-full text-zinc-400">Switch to User App</button>
-        </div>
-        <TerminalOne />
-      </div>
-    );
-  }
-
   return (
     <Layout>
-      <div className="fixed top-4 right-4 z-50">
-        <button onClick={() => setTerminalMode('admin')} className="bg-black/20 text-[10px] px-2 py-1 rounded-full text-zinc-600 uppercase">Terminal 1</button>
-      </div>
 
       {/* 1. Selfie */}
       {state.step === 'selfie' && (

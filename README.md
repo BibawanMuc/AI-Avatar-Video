@@ -4,19 +4,13 @@
 
 ## 🌟 Features
 
-This application follows a **Two-Terminal Concept**:
+## 🌟 Features
 
-### Terminal 1: Admin / Voice Registry
-*   **Purpose**: Register new Voice IDs for use in the app.
-*   **Function**: Input a Speaker Name and their corresponding **ElevenLabs Voice ID**.
-*   **Storage**: Saves directly to a Supabase Database.
-*   **Access**: Add `?terminal=1` to the URL or use the hidden button in the UI.
-
-### Terminal 2: User Kiosk (Main App)
+### User Kiosk (Main App)
 *   **Step 1: Selfie**: User takes a photo via webcam.
 *   **Step 2: Design**: User selects Outfit, Setting, and Style.
 *   **Step 3: Image Gen**: **Google Gemini 2.5** transforms the selfie into a persona.
-*   **Step 4: Voice & Text**: User selects a registered voice (from Terminal 1) and types a message.
+*   **Step 4: Voice & Text**: User selects a voice (directly from **ElevenLabs**) and types a message.
 *   **Step 5: Video Gen**:
     *   **ElevenLabs** generates the audio.
     *   **Replicate (Wan 2.1)** generates the lip-sync video.
@@ -36,8 +30,8 @@ This application follows a **Two-Terminal Concept**:
 
 ### 1. Clone & Install
 ```bash
-git clone <repository-url>
-cd px-ai-avatar
+git clone https://github.com/BibawanMuc/AI-Avatar-Video.git
+cd AI-Avatar-Video
 npm install
 ```
 
